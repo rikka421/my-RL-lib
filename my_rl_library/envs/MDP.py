@@ -49,7 +49,7 @@ class MDP:
         plt.clf()
         nx.draw(G, pos, with_labels=True, node_color='lightblue', arrows=True)
         edge_labels = {(u, v): f"{d['weight']}\n{d['action']}" for u, v, d in G.edges(data=True)}
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
         plt.show()
 
     def print(self):

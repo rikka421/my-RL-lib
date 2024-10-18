@@ -11,6 +11,9 @@ class Agent:
         self.value_function = {state: 0 for state in mdp.states}
         self.gamma = gamma
 
+    def get_pro(self, state, action):
+        return self.policy.get_pro(state, action)
+
     def evaluate_policy(self, num_episodes=1000):
         for state in self.mdp.states:
             total_reward = 0
