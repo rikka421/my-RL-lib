@@ -46,6 +46,11 @@ class MDP_Env():
                 i += 1
             self.state_value[cur_state] = ans
 
+    def evaluate_policy(self, epsilon=1e-4, max_T=-1):
+        self.calculate_V_func(epsilon, max_T)
+
+    def improve_policy(self):
+        pass
     def step(self):
         state = self.cur_state
         action = self.agent.policy.choose_action(state)
@@ -99,16 +104,18 @@ class MDP_Env():
 
 
 if __name__ == "__main__":
-    from my_rl_library.envs.RandomWalkMDP import RandomWalkMDP
+    # from my_rl_library.envs.RandomWalkMDP import RandomWalkMDP as CurMDP
+    from my_rl_library.envs.CliffWalkingMDP import CliffWalkingMDP as CurMDP
     from my_rl_library.agents.NativeMDPAgent import Agent
     # 创建 MDP 实例
-    N = 8
-    mdp = RandomWalkMDP(N)
+    mdp = CurMDP(4, 10)
     agent = Agent(mdp)
     env = MDP_Env(mdp, agent)
+    # mdp.show()
 
-    for T in range(0, 100, 10):
-        env.calculate_V_func(max_T=T)
-        plt.plot(list(range(N)), list(env.state_value.values()))
-    plt.show()
+    for T in range(0, 10):
+        env.evaluate_policy(max_T=T)
+        print(env.state_value)
+        # plt.plot(list(range(N)), list(env.state_value.values()))
+    # plt.show()
     # env.animation()
