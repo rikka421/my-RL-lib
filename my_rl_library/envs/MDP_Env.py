@@ -8,7 +8,43 @@ class MDP_Env():
     def __init__(self, mdp, agent):
         self.mdp = mdp
         self.agent = agent
-        self.cur_state = self.mdp.states[4]
+        self.cur_state = self.mdp.states[3]
+        self.state_value = {state: 0.0 for state in self.mdp.states}
+        self.state_action_value = {state: {action: 0.0 for action in self.mdp.actions} for state in self.mdp.states}
+
+    def calculate_V_func(self, epsilon=1e-4, max_T=-1):
+        # V(s) = E(G_t) = E(g_0+g_1+...)
+        # s, a, r, s'
+        for cur_state in self.mdp.states:
+            state_pros = {state: (1.0 if state == cur_state else 0.0) for state in self.mdp.states}
+            gamma = 1.0
+            ans = 0.0
+            i = 0
+            while True:
+                # print(state_pros)
+                # 计算 E [R_t] = P [S_t] * P [A_t | S_t] * R
+                new_pros = {state: 0.0 for state in self.mdp.states}
+                E_R_t = 0.0
+                for state in self.mdp.states:
+                    pro_s = state_pros.get(state, 0.0)
+                    for action in self.mdp.actions:
+                        pro_a = agent.get_pro(state, action)
+                        E_R_t += pro_s * pro_a * self.mdp.get_reward(state, action)
+                        # print(state, action, pro_s, pro_a, self.mdp.get_reward(state, action))
+
+                        probs = self.mdp.get_next_states_probs(state, action)
+                        for next_state, val in probs.items():
+                            new_pros[next_state] += val * pro_a * pro_s
+                # print("ER:", E_R_t)
+                if max_T != -1 and i > max_T:
+                    break
+                elif max_T == -1 and gamma < epsilon:
+                    break
+                ans += gamma * E_R_t
+                state_pros = new_pros
+                gamma *= self.agent.gamma
+                i += 1
+            self.state_value[cur_state] = ans
 
     def step(self):
         state = self.cur_state
@@ -66,8 +102,13 @@ if __name__ == "__main__":
     from my_rl_library.envs.RandomWalkMDP import RandomWalkMDP
     from my_rl_library.agents.NativeMDPAgent import Agent
     # 创建 MDP 实例
-    mdp = RandomWalkMDP(8)
+    N = 8
+    mdp = RandomWalkMDP(N)
     agent = Agent(mdp)
     env = MDP_Env(mdp, agent)
 
-    env.animation()
+    for T in range(0, 100, 10):
+        env.calculate_V_func(max_T=T)
+        plt.plot(list(range(N)), list(env.state_value.values()))
+    plt.show()
+    # env.animation()
