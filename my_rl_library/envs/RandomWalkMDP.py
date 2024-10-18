@@ -12,6 +12,7 @@ class RandomWalkMDP(MDP):
         self.terminal_states = [0, n-1]
         self.rewards = {n-1: 1}
         self.transition_probs = {}
+        self.init_transition_probs()
         super().__init__(self.states, self.actions, self.transition_probs, self.rewards)
 
     def init_transition_probs(self):
@@ -24,16 +25,15 @@ class RandomWalkMDP(MDP):
             self.transition_probs[l]["right"] = {r: 1.0}
             self.transition_probs[r]["left"] = {l: 1.0}
 
-
     def get_reward(self, state, action=None):
         return self.rewards.get(state, 0)
 
 
 if __name__ == "__main__":
-    # 创建 MDP 实例
-    mdp = RandomWalkMDP(8)
-
     # 模拟一次随机游走
+    mdp = RandomWalkMDP(8)
+    mdp.show()
+
     current_state = 2  # 从状态 2 开始
     done = False
     while not done:

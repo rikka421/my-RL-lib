@@ -53,6 +53,7 @@ class Agent:
             self.policy.print()
 
 
+
 if __name__ == "__main__":
     mdp = RandomWalkMDP(8)
 
