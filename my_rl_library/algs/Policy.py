@@ -8,12 +8,16 @@ class Policy:
         self.num_states = len(states)
         self.num_actions = len(actions)
         # 初始化策略为均匀随机选择  # Dict: {state: {action: probability}}
-        self.policy = {state: np.ones(self.num_actions) / self.num_actions for state in states}
-        # self.policy = {state: {action: np.random.random() for action in actions} for state in states}
+        self.policy = {state: {action: 1 / self.num_actions for action in actions} for state in states}
+
+    def get_pro(self, state, action):
+        return self.policy.get(state, {}).get(action, 0)
 
     def choose_action(self, state):
         # 返回当前状态下的动作
-        return np.random.choice(self.actions, p=self.policy[state])
+        actions = list(self.policy.get(state, {}).keys())
+        pros = list(self.policy.get(state, {}).values())
+        return np.random.choice(actions, p=pros)
 
     def update_policy(self, state, probabilities):
         # 更新某个状态的策略
@@ -36,7 +40,7 @@ if __name__ == "__main__":
         action = policy.choose_action(current_state)
         print(f"{_} state {current_state}, action: {action}")
 
-    policy.update_policy(current_state, [0.1, 0.9])
+    policy.update_policy(current_state, {"move":0.1, "stay":0.9})
     for _ in range(5):
         action = policy.choose_action(current_state)
         print(f"{_} state {current_state}, action: {action}")
