@@ -70,3 +70,4 @@ if __name__ == "__main__":
 
     mdp = MDP(states, actions, transition_probs, rewards)
     mdp.show()
+
