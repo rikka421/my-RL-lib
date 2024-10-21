@@ -70,7 +70,3 @@ if __name__ == "__main__":
 
     mdp = MDP(states, actions, transition_probs, rewards)
     mdp.show()
-    next_state, reward, _ = mdp.step('A', 'move')
-    #print(f"Next State: {next_state}, Reward: {reward}")
-    next_state, reward, _ = mdp.step('A', 'stay')
-    #print(f"Next State: {next_state}, Reward: {reward}")
