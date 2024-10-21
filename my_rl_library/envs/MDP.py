@@ -8,6 +8,7 @@ class MDP:
     def __init__(self, states, actions, transition_probs, rewards):
         # 此处我们没有建模gamma, 而是将其放置在策略中进行考虑
         self.states = states
+        self.start_state = self.states[0]
         self.actions = actions
         self.transition_probs = transition_probs  # Dict: {state: {action: {next_state: probability}}}
         self.rewards = rewards  # Dict: {(state, action): reward}
@@ -28,8 +29,7 @@ class MDP:
         if sum(probs) == 0:
             return state, reward, True
         next_state = np.random.choice(next_states, p=probs)
-        done = False
-        return next_state, reward, done
+        return next_state, reward, False
 
     def show(self):
         # 创建图
@@ -43,12 +43,12 @@ class MDP:
                     G.add_edge(state, next_state, weight=prob, action=action)
 
         # 设置图形位置
-        pos = nx.spring_layout(G, iterations=800)
+        pos = nx.spring_layout(G)
 
         fig = plt.figure()
         plt.clf()
         nx.draw(G, pos, with_labels=True, node_color='lightblue', arrows=True)
-        edge_labels = {(u, v): f"{d['weight']}\n{d['action']}" for u, v, d in G.edges(data=True)}
+        # edge_labels = {(u, v): f"{d['weight']}\n{d['action']}" for u, v, d in G.edges(data=True)}
         # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
         plt.show()
 

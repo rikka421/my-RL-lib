@@ -14,6 +14,7 @@ class RandomWalkMDP(MDP):
         self.transition_probs = {}
         self.init_transition_probs()
         super().__init__(self.states, self.actions, self.transition_probs, self.rewards)
+        self.start_state = n // 2
 
     def init_transition_probs(self):
         for i in range(1, self.n-1):

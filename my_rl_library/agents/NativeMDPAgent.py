@@ -14,6 +14,10 @@ class Agent:
     def get_pro(self, state, action):
         return self.policy.get_pro(state, action)
 
+    def update_policy(self, state, probabilities):
+        # 更新某个状态的策略
+        self.policy.update_policy(state, probabilities)
+
     def evaluate_policy(self, num_episodes=1000):
         for state in self.mdp.states:
             total_reward = 0

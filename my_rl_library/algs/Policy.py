@@ -24,7 +24,16 @@ class Policy:
         self.policy[state] = probabilities
 
     def print(self):
-        print(self.policy)
+        ans = {}
+        for state in self.states:
+            val = -1
+            best_action = None
+            for action in self.actions:
+                if self.get_pro(state, action) >= val:
+                    best_action = action
+                    val = self.get_pro(state, action)
+            ans[state] = best_action
+        return ans
 
 
 if __name__ == "__main__":
