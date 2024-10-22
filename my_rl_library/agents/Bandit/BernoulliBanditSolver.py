@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from my_rl_library.envs.BernoulliBandit import BernoulliBandit
+from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
 
 
 class Solver:
@@ -29,6 +29,7 @@ class Solver:
             self.counts[k] += 1
             self.actions.append(k)
             self.update_regret(k)
+
 
 if __name__ == '__main__':
     K = 10

@@ -5,7 +5,7 @@ from my_rl_library.agents.Bandit.BernoulliBanditSolver import Solver
 
 class EpsilonGreedy(Solver):
     """ epsilon贪婪算法,继承Solver类 """
-    def __init__(self, bandit, epsilon=0.01, init_prob=1.0, init_N=0):
+    def __init__(self, bandit, epsilon=0.01, init_prob=1.0, init_N=0, name="EpsilonGreedy"):
         super(EpsilonGreedy, self).__init__(bandit)
         self.epsilon = epsilon
         #初始化拉动所有拉杆的期望奖励估值
@@ -14,6 +14,7 @@ class EpsilonGreedy(Solver):
         self.sum_count = 0
 
         self.init_N = init_N
+        self.__name__ = name
 
     def run_one_step(self):
         # 如果有一个固定的init_N, 就挨个尝试; 否则, 按照epsilon-greedy尝试

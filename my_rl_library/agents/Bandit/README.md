@@ -17,7 +17,9 @@
 
 其中, 有三个超参数
 
-    def __init__(self, bandit, epsilon=0.01, init_prob=1.0, init_N=0)
+```python
+def __init__(self, bandit, epsilon=0.01, init_prob=1.0, init_N=0):...
+```
 
  - 对于epsilon, 等于0时退化为greedy; 等于1时退化为随机策略;
  - 对于init_prob, 大于1时成为乐观初始化方法;
@@ -31,3 +33,22 @@
 
 
 Thompson Sampling方法
+
+### BanditMainEnv
+[BanditMainEnv.py](..%2F..%2Fenvs%2FBanditEnv%2FBanditMainEnv.py)
+
+此处编写的
+```python
+def __init__(self, env, agents):...
+```
+
+会接受一个统一的环境env, 同时接受一系列的agent, 这些agent都各自运行在env上. 
+
+在后面的编写中, 可能会有一个env中包含多个anent的情况, 它们都统一到架构mainEnv中. 
+
+通过mainEnv.run的调用, 我们可以方便地完成多个agent在各自环境;
+一个agent在多个环境; 多个agent在同一个环境的集成运行
+
+### 一些实验结论
+
+ - 仅对于epsilon-greedy算法, 当T=5000, K=10时, epsilon=1e-4时的结果总是优于参数更大时的结果
