@@ -12,6 +12,7 @@ class UCB(Solver):
 
     def run_one_step(self):
         self.total_count += 1
+        # 根据切比雪夫不等式得到上置信界
         ucb = self.estimates + self.coef * np.sqrt(
             np.log(self.total_count) / (2 * (self.counts + 1)))  # 计算上置信界
         k = np.argmax(ucb)  # 选出上置信界最大的拉杆
