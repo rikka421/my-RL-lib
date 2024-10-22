@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from fontTools.misc.bezierTools import epsilon
 
-from my_rl_library.agents.Bandit import BernoulliBanditSolver
+from my_rl_library.agents.Bandit import *
 
 class BanditMainEnv():
     def __init__(self, env, agents):
@@ -35,7 +34,6 @@ class BanditMainEnv():
 
 if __name__ == '__main__':
     from BernoulliBandit import BernoulliBandit
-    from my_rl_library.agents.Bandit.EpsilonGreedySolver import EpsilonGreedy
     K = 10
     bandit = BernoulliBandit(K)
     agents = []
