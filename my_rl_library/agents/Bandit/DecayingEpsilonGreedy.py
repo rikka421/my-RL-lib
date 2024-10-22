@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from my_rl_library.agents.Bandit.BernoulliBanditSolver import Solver
 
@@ -26,24 +25,9 @@ class DecayingEpsilonGreedy(Solver):
 
 
 if __name__ == '__main__':
-    def plot_results(solvers, solver_names):
-        """生成累积懊悔随时间变化的图像。输入solvers是一个列表,列表中的每个元素是一种特定的策略。
-        而solver_names也是一个列表,存储每个策略的名称"""
-        for idx, solver in enumerate(solvers):
-            time_list = range(len(solver.regrets))
-            plt.plot(time_list, solver.regrets, label=solver_names[idx])
-        plt.xlabel('Time steps')
-        plt.ylabel('Cumulative regrets')
-        plt.title('%d-armed bandit' % solvers[0].bandit.K)
-        plt.legend()
-        plt.show()
+    from misc import *
 
-
-    from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
-    K = 10
-    bandit = BernoulliBandit(K)
-    np.random.seed(1)
-    decaying_epsilon_greedy_solver = DecayingEpsilonGreedy(bandit)
+    decaying_epsilon_greedy_solver = DecayingEpsilonGreedy(bandit_10_arm)
     decaying_epsilon_greedy_solver.run(5000)
     print('epsilon值衰减的贪婪算法的累积懊悔为：', decaying_epsilon_greedy_solver.regret)
     plot_results([decaying_epsilon_greedy_solver], ["DecayingEpsilonGreedy"])

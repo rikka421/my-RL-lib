@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 class Solver:
     """ 多臂老虎机算法基本框架 """
