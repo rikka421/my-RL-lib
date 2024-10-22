@@ -38,9 +38,10 @@ if __name__ == '__main__':
     bandit = BernoulliBandit(K)
     agents = []
 
-    epsilons = [1e-4, 0.01, 0.1, 0.25, 0.5]
+    epsilons = [1e-4, 0.01]
     for e in epsilons:
         agents.append(EpsilonGreedy(bandit, e, name="epsilon="+str(e)))
+    agents.append(DecayingEpsilonGreedy(bandit))
     env = BanditMainEnv(bandit, agents)
 
     T = 5000

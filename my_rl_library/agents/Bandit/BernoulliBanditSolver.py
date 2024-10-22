@@ -1,9 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
-
-
 class Solver:
     """ 多臂老虎机算法基本框架 """
     def __init__(self, bandit):
@@ -32,8 +29,10 @@ class Solver:
 
 
 if __name__ == '__main__':
+    from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
     K = 10
-    steps = 100
     bandit = BernoulliBandit(K)
     agent = Solver(bandit)
+
+    steps = 100
     agent.run(steps)

@@ -52,3 +52,8 @@ def __init__(self, env, agents):...
 ### 一些实验结论
 
  - 仅对于epsilon-greedy算法, 当T=5000, K=10时, epsilon=1e-4时的结果总是优于参数更大时的结果
+ - `epsilon = 1/t`时, 算法表现与`e=1e-4`大致相同, 同时都优于`e=0.01`的设置
+
+
+
+
