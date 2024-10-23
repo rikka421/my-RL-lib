@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import networkx as nx
 
 class MDP:
     # 此处考虑离散的状态和动作空间, 于是将S, A, P, R都采用了列表或字典形式;
@@ -31,27 +30,6 @@ class MDP:
         next_state = np.random.choice(next_states, p=probs)
         return next_state, reward, False
 
-    def show(self):
-        # 创建图
-        G = nx.DiGraph()
-
-        # 添加节点和边
-        for state in self.states:
-            G.add_node(state)
-            for action in self.actions:
-                for next_state, prob in self.get_next_states_probs(state, action).items():
-                    G.add_edge(state, next_state, weight=prob, action=action)
-
-        # 设置图形位置
-        pos = nx.spring_layout(G)
-
-        fig = plt.figure()
-        plt.clf()
-        nx.draw(G, pos, with_labels=True, node_color='lightblue', arrows=True)
-        # edge_labels = {(u, v): f"{d['weight']}\n{d['action']}" for u, v, d in G.edges(data=True)}
-        # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-        plt.show()
-
     def print(self):
         print(self.states, self.actions)
         print(self.transition_probs)
@@ -69,5 +47,4 @@ if __name__ == "__main__":
     rewards = {('A', 'move'): 1, ('B', 'move'): 0}
 
     mdp = MDP(states, actions, transition_probs, rewards)
-    mdp.show()
     print("some thing change")

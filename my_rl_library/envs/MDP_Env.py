@@ -1,8 +1,5 @@
-
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
-from matplotlib.animation import FuncAnimation
 from tqdm import tqdm
 
 class MDP_Env():
@@ -108,62 +105,21 @@ class MDP_Env():
         self.episode.append(SARS)
         return next_state, reward, done
 
-    def animation(self, frames=60):
-        # 创建图
-        G = nx.DiGraph()
-
-        # 添加节点和边
-        for state in self.mdp.states:
-            G.add_node(state)
-            for action in self.mdp.actions:
-                for next_state, prob in self.mdp.get_next_states_probs(state, action).items():
-                    G.add_edge(state, next_state, weight=prob, action=action)
-
-        # 设置图形位置
-        pos = nx.planar_layout(G)
-
-        # 创建动画更新函数
-        def update(frame):
-            plt.clf()
-            nx.draw(G, pos, with_labels=True, node_color='lightblue', arrows=True)
-            # edge_labels = {(u, v): f"{d['weight']}\n{d['action']}" for u, v, d in G.edges(data=True)}
-            # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-            nx.draw_networkx_nodes(G, pos, nodelist=[self.cur_state], node_color='orange')
-            # nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, width=4, alpha=1.0, edge_color='orange')
-            # 高亮当前转移
-            next_state, reward, done = self.step()
-            plt.annotate('', xy=pos[self.SARS["next_state"]], xycoords='data',
-                         xytext=pos[self.SARS["state"]], textcoords='data',
-                         arrowprops=dict(arrowstyle="->", lw=2, color='red'))
-            # print(self.SARS)
-            if done:
-                ani.event_source.stop()
-                # plt.close(fig)
-        # 创建动画
-        fig = plt.figure()
-        ani = FuncAnimation(fig, update, frames=frames, repeat=False)
-        # 保存为视频文件
-        # ani.save('mdp_transition.mp4', writer='ffmpeg', fps=1)
-        plt.show()
-
-    def run_episode(self, animation=False):
+    def run_episode(self,):
         self.reset()
-        if animation:
-            self.animation()
-            return
 
         while True:
             s, r, done = self.step()
             if done:
                 break
 
-    def train(self, num_episodes=100, animation=False):
+    def train(self, num_episodes=100):
         return_list = []  # 记录每一条序列的回报
         for i in range(10):  # 显示10个进度条
             # tqdm的进度条功能
             with tqdm(total=int(num_episodes / 10), desc='Iteration %d' % i) as pbar:
                 for i_episode in range(int(num_episodes / 10)):  # 每个进度条的序列数
-                    self.run_episode(animation)
+                    self.run_episode()
                     self.evaluate_policy()
                     self.improve_policy()
 
@@ -208,4 +164,3 @@ if __name__ == "__main__":
         print()
 
     # plt.show()
-    # env.animation()
