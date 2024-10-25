@@ -1,27 +1,19 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
-# 初始化数据
-x = np.linspace(0, 2 * np.pi, 100)
-y = np.sin(x)
+a = [3, 4, 4, 6, 3]
+b = [2, 3, 2, 3, 0]
 
-fig, ax = plt.subplots()
-line, = ax.plot(x, y)
+a = np.array(a, dtype=float)
+b = np.array(b, dtype=float)
 
-# 计数器，用于控制动画结束
-frame_count = 0
-max_frames = 50
+a -= np.mean(a)
+b -= np.mean(b)
 
-def update(frame):
-    global frame_count
-    if frame_count < max_frames:
-        line.set_ydata(np.sin(x + frame / 10))  # 更新y数据
-        frame_count += 1
-    else:
-        ani.event_source.stop()  # 停止动画
-    return line,
+X = np.array([a, b], dtype=float)
 
-ani = FuncAnimation(fig, update, frames=np.arange(0, 100), blit=True)
+X = X.T
+print(X)
 
-plt.show()
+cov = X.T @ X
+e_vals,e_vecs = np.linalg.eig(cov)
+print(e_vals,e_vecs)
