@@ -3,7 +3,7 @@ import numpy as np
 
 
 class RandomWalkMDP(MDP):
-    def __init__(self, n):
+    def __init__(self, n = 10):
         # 定义状态、动作和奖励
         self.states = list(range(n))
         self.actions = ['left', 'right']
@@ -12,8 +12,7 @@ class RandomWalkMDP(MDP):
 
         self.start_state = n // 2
         self.terminal_states = [0, n-1]
-        self.transition_probs = None
-        self.init_transition_probs()
+        self.transition_probs = self.init_transition_probs()
 
         self.rewards = [0] * n
         self.rewards[n-1] = 1
@@ -22,18 +21,18 @@ class RandomWalkMDP(MDP):
                          self.start_state, self.terminal_states)
 
     def init_transition_probs(self):
-        self.transition_probs = np.zeros((self.states_num, self.actions_num, self.states_num), dtype=float)
+        self.transition_probs = (np.zeros((self.states_num, self.actions_num, self.states_num), dtype=float))
         for i in range(self.states_num):
             for j in range(2):
-                if i == 0:
+                if i in self.terminal_states:
                     continue
-                elif i == self.states_num - 1:
-                    continue
-                else:
-                    self.transition_probs[i, j, i+(j * 2 - 1)] = 1.0
+
+                self.transition_probs[i, j, i+(j * 2 - 1)] = 1.0
 
         for s in self.terminal_states:
-            self.transition_probs[s, :, s] = np.ones((self.actions_num))
+            self.transition_probs[s, :, s] = np.ones(self.actions_num)
+
+        return self.transition_probs
 
     def get_reward(self, state, action=None):
         return self.rewards[state]
