@@ -4,41 +4,51 @@ import numpy as np
 
 class RandomWalkMDP(MDP):
     def __init__(self, n):
-        assert n >= 2
         # 定义状态、动作和奖励
-        self.n = n
         self.states = list(range(n))
         self.actions = ['left', 'right']
-        self.terminal_states = [0, n-1]
-        self.rewards = {n-1: 1}
-        self.transition_probs = {}
-        self.init_transition_probs()
-        super().__init__(self.states, self.actions, self.transition_probs, self.rewards)
+        self.states_num = n
+        self.actions_num = len(self.actions)
+
         self.start_state = n // 2
+        self.terminal_states = [0, n-1]
+        self.transition_probs = None
+        self.init_transition_probs()
+
+        self.rewards = [0] * n
+        self.rewards[n-1] = 1
+        self.rewards = np.array(self.rewards)
+        super().__init__(self.states_num, self.actions_num, self.transition_probs, self.rewards,
+                         self.start_state, self.terminal_states)
 
     def init_transition_probs(self):
-        for i in range(1, self.n-1):
-            self.transition_probs[i] = {}
-        self.transition_probs[1] = {"left": {0: 1.0}}
-        self.transition_probs[self.n-2] = {"right": {self.n-1: 1.0}}
-        for l in range(1, self.n-2):
-            r = l + 1
-            self.transition_probs[l]["right"] = {r: 1.0}
-            self.transition_probs[r]["left"] = {l: 1.0}
+        self.transition_probs = np.zeros((self.states_num, self.actions_num, self.states_num), dtype=float)
+        for i in range(self.states_num):
+            for j in range(2):
+                if i == 0:
+                    continue
+                elif i == self.states_num - 1:
+                    continue
+                else:
+                    self.transition_probs[i, j, i+(j * 2 - 1)] = 1.0
+
+        for s in self.terminal_states:
+            self.transition_probs[s, :, s] = np.ones((self.actions_num))
 
     def get_reward(self, state, action=None):
-        return self.rewards.get(state, 0)
+        return self.rewards[state]
 
 
 if __name__ == "__main__":
     # 模拟一次随机游走
-    mdp = RandomWalkMDP(8)
-    mdp.show()
+    mdp = RandomWalkMDP(5)
+    # print(mdp.transition_probs)
+    print(mdp.rewards)
 
-    current_state = 2  # 从状态 2 开始
+    s = mdp.reset()
     done = False
     while not done:
-        action = np.random.choice(mdp.actions)  # 随机选择动作
-        next_state, reward, done = mdp.step(current_state, action)
-        print(f"Current State: {current_state}, Action: {action}, Next State: {next_state}, Reward: {reward}")
-        current_state = next_state
+        action = np.random.choice([0, 1])
+        ns, r, done = mdp.step(s, action)
+        print(s, action, ns, r, done)
+        s = ns
