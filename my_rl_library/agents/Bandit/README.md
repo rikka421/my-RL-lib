@@ -13,7 +13,7 @@
 
 ### EpsilonGreedySolver
 编写了
-[EpsilonGreedySolver.py](EpsilonGreedySolver.py)
+[EpsilonGreedy.py](EpsilonGreedy.py)
 
 其中, 有三个超参数
 

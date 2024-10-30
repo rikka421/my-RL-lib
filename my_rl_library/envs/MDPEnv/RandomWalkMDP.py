@@ -1,5 +1,5 @@
-from my_rl_library.envs.MDP import MDP
 import numpy as np
+from MDP import MDP
 
 
 class RandomWalkMDP(MDP):

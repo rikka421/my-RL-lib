@@ -1,19 +1,28 @@
+import pettingzoo
+from pettingzoo.classic import tictactoe_v3
+import random
 import numpy as np
 
-a = [3, 4, 4, 6, 3]
-b = [2, 3, 2, 3, 0]
+def main():
+    # 创建井字棋环境
+    env = tictactoe_v3.env(render_mode="human")
+    # 重置环境以开始新的游戏
+    env.reset(seed=42)
+    # 循环直到游戏结束
+    for agent in env.agent_iter():
+        observation, reward, termination, truncation, info = env.last()
 
-a = np.array(a, dtype=float)
-b = np.array(b, dtype=float)
+        if termination or truncation:
+            action = None
+        else:
+            mask = observation["action_mask"]
+            # 随机选择一个可用的动作
+            action = np.random.choice(np.where(mask)[0])
 
-a -= np.mean(a)
-b -= np.mean(b)
+        env.step(action)
 
-X = np.array([a, b], dtype=float)
+    # 渲染最终的环境状态
+    env.render()
 
-X = X.T
-print(X)
-
-cov = X.T @ X
-e_vals,e_vecs = np.linalg.eig(cov)
-print(e_vals,e_vecs)
+if __name__ == "__main__":
+    main()

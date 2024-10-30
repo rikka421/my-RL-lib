@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-class MDP_Env():
+class MDPMainEnv():
     def __init__(self, mdp, agent):
         self.mdp = mdp
         self.agent = agent
@@ -88,6 +88,7 @@ class MDP_Env():
 
     def improve_policy(self, epsilon=1e-1):
         self.epsilon_greedy(epsilon)
+
     def step(self):
         state = self.cur_state
         action = self.agent.policy.choose_action(state)
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     # mdp = RandomWalkMDP(10)
     mdp = CliffWalkingMDP(4, 6)
     agent = Agent(mdp)
-    env = MDP_Env(mdp, agent)
+    env = MDPMainEnv(mdp, agent)
     # mdp.show()
 
     for _ in range(100):

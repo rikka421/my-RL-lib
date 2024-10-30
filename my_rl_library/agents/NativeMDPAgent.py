@@ -1,4 +1,4 @@
-from my_rl_library.envs.RandomWalkMDP import RandomWalkMDP
+from my_rl_library.envs.MDPEnv.RandomWalkMDP import RandomWalkMDP
 from my_rl_library.algs.Policy import Policy
 
 import numpy as np

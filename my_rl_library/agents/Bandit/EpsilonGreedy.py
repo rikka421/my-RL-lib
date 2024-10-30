@@ -1,6 +1,6 @@
 import numpy as np
 
-from my_rl_library.agents.Bandit.BernoulliBanditSolver import Solver
+from BernoulliBanditSolver import Solver
 
 class EpsilonGreedy(Solver):
     """ epsilon贪婪算法,继承Solver类 """

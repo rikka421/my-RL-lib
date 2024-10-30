@@ -1,6 +1,6 @@
 import numpy as np
 
-from my_rl_library.agents.Bandit.BernoulliBanditSolver import Solver
+from BernoulliBanditSolver import Solver
 
 
 class ThompsonSampling(Solver):
