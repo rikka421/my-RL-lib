@@ -3,6 +3,7 @@ from my_rl_library.envs.Env import MyEnv
 
 class MDP(MyEnv):
     # 此处考虑离散的状态和动作空间, 于是将S, A, P, R都采用了列表或字典形式;
+    # 格子世界的写法.
     # 之后对于连续空间可能采用神经网络之类的建模.
     def __init__(self, states_num, actions_num, transition_probs, rewards, start_state, terminal_states):
         super(MDP, self).__init__()

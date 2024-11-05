@@ -31,23 +31,3 @@ class BanditMainEnv():
         plt.title('%d-armed bandit' % self.env.K)
         plt.legend()
         plt.show()
-
-if __name__ == '__main__':
-    from BernoulliBandit import BernoulliBandit
-    K = 10
-    bandit = BernoulliBandit(K)
-    agents = []
-
-    epsilons = [1e-4, 0.01]
-    for e in epsilons:
-        agents.append(EpsilonGreedy(bandit, e, name="epsilon="+str(e)))
-    agents.append(DecayingEpsilonGreedy(bandit))
-    env = BanditMainEnv(bandit, agents)
-
-    T = 5000
-    env.run(T)
-    env.plot_results()
-
-    for idx, agent in enumerate(agents):
-        dis = bandit.probs - agent.estimates
-        print(agent.__name__, f"{np.sum(np.square(dis)) / len(dis):.4f}", f"{max(np.square(dis)):.4f}")
