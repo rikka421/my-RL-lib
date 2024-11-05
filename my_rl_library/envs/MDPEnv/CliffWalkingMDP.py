@@ -1,5 +1,5 @@
 import numpy as np
-from MDP import MDP
+from my_rl_library.envs.MDPEnv.MDP import MDP
 
 
 class CliffWalkingEnv(MDP):

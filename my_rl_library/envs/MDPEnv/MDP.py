@@ -38,6 +38,9 @@ class MDP(MyEnv):
         :param action:
         :return:
         """
+        if state in self.termination_states:
+            return state, 0, True
+
         reward = self.get_reward(state, action)
         next_state = self.get_next_state(state, action)
         done = (state in self.termination_states)
