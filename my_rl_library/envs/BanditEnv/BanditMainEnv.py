@@ -1,7 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
 
-from my_rl_library.agents.Bandit import *
 
 class BanditMainEnv():
     def __init__(self, env, agents):

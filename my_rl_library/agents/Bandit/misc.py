@@ -15,6 +15,6 @@ def plot_results(solvers, solver_names):
 
 np.random.seed(1)
 
-from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
+from my_rl_library import BernoulliBandit
 K = 10
 bandit_10_arm = BernoulliBandit(K)

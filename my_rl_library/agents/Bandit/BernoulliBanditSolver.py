@@ -28,7 +28,7 @@ class Solver:
 
 
 if __name__ == '__main__':
-    from my_rl_library.envs.BanditEnv.BernoulliBandit import BernoulliBandit
+    from my_rl_library import BernoulliBandit
     K = 10
     bandit = BernoulliBandit(K)
     agent = Solver(bandit)

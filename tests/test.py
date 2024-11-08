@@ -1,131 +1,68 @@
-import gymnasium as gym
+import heapq
 
-# 列出所有可用环境
-envs = gym.envs.registry
-env_names = [env for env in envs]
+class PriorityQueue:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.heap = []  # 用于存储优先级队列的堆
+        self.count = 0  # 用于生成插入顺序，打破优先级相同的元素的顺序
 
-print("可用的环境:")
-for name in env_names:
-    print(name)
+    def push(self, priority, item):
+        """
+        向优先级队列添加元素。如果队列已满，删除优先级最低的元素。
+        """
+        # 如果队列还没有满，直接插入
+        if len(self.heap) < self.capacity:
+            heapq.heappush(self.heap, (priority, self.count, item))
+        else:
+            # 如果队列已满，替换优先级最低的元素
+            # 这里的 `heappushpop` 会插入新元素并弹出优先级最低的元素
+            heapq.heappushpop(self.heap, (priority, self.count, item))
 
-id_str = """
-CartPole-v0
-CartPole-v1
-MountainCar-v0
-MountainCarContinuous-v0
-Pendulum-v1
-Acrobot-v1
-CartPoleJax-v0
-CartPoleJax-v1
-PendulumJax-v0
-LunarLander-v2
-LunarLanderContinuous-v2
-BipedalWalker-v3
-BipedalWalkerHardcore-v3
-CarRacing-v2
-Blackjack-v1
-FrozenLake-v1
-FrozenLake8x8-v1
-CliffWalking-v0
-Taxi-v3
-Jax-Blackjack-v0
-Reacher-v2
-Reacher-v4
-Pusher-v2
-Pusher-v4
-InvertedPendulum-v2
-InvertedPendulum-v4
-InvertedDoublePendulum-v2
-InvertedDoublePendulum-v4
-HalfCheetah-v2
-HalfCheetah-v3
-HalfCheetah-v4
-Hopper-v2
-Hopper-v3
-Hopper-v4
-Swimmer-v2
-Swimmer-v3
-Swimmer-v4
-Walker2d-v2
-Walker2d-v3
-Walker2d-v4
-Ant-v2
-Ant-v3
-Ant-v4
-Humanoid-v2
-Humanoid-v3
-Humanoid-v4
-HumanoidStandup-v2
-HumanoidStandup-v4
-GymV21Environment-v0
-GymV26Environment-v0
-"""
+        self.count += 1
 
-print(id_str.split('\n'))
+    def pop(self):
+        """
+        弹出并返回优先级最高的元素（优先级数值最小的元素）。
+        """
+        if self.heap:
+            priority, count, item = heapq.heappop(self.heap)
+            return item
+        else:
+            raise IndexError("pop from an empty priority queue")
 
+    def peek(self):
+        """
+        返回优先级最高的元素（不删除）。
+        """
+        if self.heap:
+            priority, count, item = self.heap[0]
+            return item
+        else:
+            raise IndexError("peek from an empty priority queue")
 
+    def size(self):
+        """
+        返回队列当前的大小。
+        """
+        return len(self.heap)
 
-"""
+# 示例
+pq = PriorityQueue(capacity=3)
 
+# 插入元素
+pq.push(2, 'item_2')
+pq.push(1, 'item_1')
+pq.push(3, 'item_3')
 
+# 队列已满，插入新元素会挤出优先级最低的元素
+pq.push(4, 'item_4')
 
-Robot
+# 弹出优先级最高的元素（优先级最小的元素）
+print(pq.pop())  # 'item_1' (优先级 1)
 
-Short Description
+# 队列大小
+print(pq.size())  # 2
 
-CartPoles
-
-InvertedPendulum
-
-MuJoCo version of the CartPole Environment (with Continuous actions)
-
-InvertedDoublePendulum
-
-2 Pole variation of the CartPole Environment
-
-Arms
-
-Reacher
-
-2d arm with the goal of reaching an object
-
-Pusher
-
-3d arm with the goal of pushing an object to a target location
-
-2D Runners
-
-HalfCheetah
-
-2d quadruped with the goal of running
-
-Hopper
-
-2d monoped with the goal of hopping
-
-Walker2d
-
-2d biped with the goal of walking
-
-Swimmers
-
-Swimmer
-
-3d robot with the goal of swimming
-
-Quarduped
-
-Ant
-
-3d quadruped with the goal of running
-
-Humanoid Bipeds
-
-Humanoid
-
-3d humanoid with the goal of running
-
-HumanoidStandup
-
-3d humanoid with the goal of standing up
-"""
+# 获取当前队列中的元素
+while pq.size() > 0:
+    print(pq.pop())

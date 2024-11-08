@@ -1,5 +1,3 @@
-import numpy as np
-
 class ValueEstimator:
     def __init__(self):
         # 价值估算器. 白盒环境下, 应当传入: P, pi, R.
@@ -36,14 +34,16 @@ class TDEstimator(ValueEstimator):
         pass
 
 import numpy as np
-from my_rl_library.envs.MDPEnv.RandomWalkMDP import RandomWalkMDP
+from my_rl_library import CliffWalkingEnv
 if __name__ == '__main__':
 
     estimator = NativeValueEstimator()
-    mdp = RandomWalkMDP(5)
+    mdp = CliffWalkingEnv(3, 3)
 
 
     pi = np.full((mdp.states_num, mdp.actions_num), 1/mdp.actions_num)
+
+    print(mdp.transition_probs)
 
     result = estimator.compute(mdp.transition_probs,
                                pi, mdp.rewards, 1,

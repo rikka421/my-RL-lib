@@ -1,5 +1,5 @@
 import numpy as np
-from my_rl_library.envs.Env import MyEnv
+from my_rl_library import MyEnv
 
 class MDP(MyEnv):
     # 此处考虑离散的状态和动作空间, 于是将S, A, P, R都采用了列表或字典形式;
