@@ -1,7 +1,6 @@
 import queue
 import heapq
 import numpy as np
-import torch
 
 class SamplePool:
     def __init__(self, capacity):
@@ -45,6 +44,7 @@ class PriorityPool(SamplePool):
             return None
         return self.samples.get()
 
+
 class PrioritySamplePool(SamplePool):
     def __init__(self, capacity):
         """
@@ -54,7 +54,7 @@ class PrioritySamplePool(SamplePool):
         super().__init__(capacity)
         self.samples = []  # 样本池中的样本列表
         self.counter = 0
-    def put(self, sample, priority):
+    def put(self, sample, priority=1):
         """
         向样本池中添加一个新样本。最旧的样本将被挤出
         """
@@ -77,8 +77,13 @@ class PrioritySamplePool(SamplePool):
         probabilities = priorities / priorities.sum()  # 转换为概率
 
         # 使用加权概率进行采样
-        indices = torch.multinomial(torch.tensor(probabilities), batch_size, replacement=True)
+        indices = np.random.choice(range(len(self.samples)), size=batch_size, p=probabilities, replace=True)
+        # indices = torch.multinomial(torch.tensor(probabilities), batch_size, replacement=True)
 
         # 根据采样索引返回对应的样本
         sampled_samples = [self.samples[idx][2] for idx in indices]
-        return torch.tensor(sampled_samples)
+        return sampled_samples
+
+    def __len__(self):
+        return len(self.samples)
+

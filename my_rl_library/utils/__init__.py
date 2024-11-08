@@ -1,3 +1,2 @@
-
-from helpers import *
-from MyFCNN import MyFCNN
+from my_rl_library.utils.MyFCNN import *
+from my_rl_library.utils.SamplePool import *

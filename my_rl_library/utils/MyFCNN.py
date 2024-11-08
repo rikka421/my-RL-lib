@@ -13,6 +13,7 @@ class MyFCNN(nn.Module):
             for i in range(len(hidden_dims) - 1):
                 self.fcs.append(nn.Linear(hidden_dims[i], hidden_dims[i + 1]))
             self.fcs.append(nn.Linear(hidden_dims[-1], output_dim))
+        self.fcs = nn.ModuleList(self.fcs)
     def forward(self, x):
         for fc in self.fcs:
             x = torch.relu(fc(x))

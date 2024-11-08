@@ -1,17 +1,12 @@
 import gymnasium as gym
-import torch
-import numpy as np
 
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, DDPG, TD3, SAC, PPO
 from stable_baselines3.common.monitor import Monitor
-
 import os
 import shutil
 
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from my_rl_library.agents.DQNs.MyDQN import MyDQN
 
 
 def train(env_name, Agent):
@@ -21,11 +16,30 @@ def train(env_name, Agent):
     env = Monitor(env, log_dir + "monitor.csv")
 
     # 初始化模型，启用 TensorBoard 日志记录
-    model = Agent("MlpPolicy", env)# , verbose=1, tensorboard_log=tensorboard_log)
+    model = Agent("MlpPolicy", env, verbose=1, tensorboard_log=tensorboard_log)
 
     # 开始训练
     model.learn(total_timesteps=1e5)
     model.save(log_dir + "model_weights")
+    env.close()
+
+def test(env_name, Agent):
+    # 加载模型
+    env = gym.make(env_name)
+    model = Agent.load("model_weights")
+
+    # 测试模型
+    state, _ = env.reset()
+    done = False
+    total_reward = 0
+
+    while not done:
+        action, _ = model.predict(state, deterministic=True)
+        state, reward, done, _, __ = env.step(action)
+        total_reward += reward
+        env.render()
+
+    print("Total Reward:", total_reward)
     env.close()
 
 def plot(env_name, agent_name):
@@ -45,14 +59,26 @@ def plot(env_name, agent_name):
     plt.plot(smoothed_rewards, label=agent_name + " " + env_name)
 
 def run_tests():
-    discrete_envs_list = ["CartPole-v1"]
+    discrete_envs_list = ["LunarLander-v2"]
+    continuous_envs_list = ["Pendulum-v1"]
+    continuous_agents_list = [DDPG,
+                              TD3,
+                              SAC,
+                              PPO]
 
     for env_name in discrete_envs_list:
-        train(env_name, MyDQN)
-        plot(env_name, "MyDQN")
-        train(env_name, DQN)
-        plot(env_name, "DQN")
+        Agent = DQN
+        agent_name = str(Agent)
+        train(env_name, Agent)
+        # test(env_name, Agent)
+        plot(env_name, agent_name)
 
+    for env_name in continuous_envs_list:
+        for Agent in continuous_agents_list:
+            agent_name = str(Agent)
+            train(env_name, Agent)
+            # test(env_name, Agent)
+            plot(env_name, agent_name)
     plt.xlabel("Episodes")
     plt.ylabel("Rewards")
     plt.title("Smoothed Training Rewards over Episodes")
@@ -62,9 +88,6 @@ def run_tests():
 
 
 if __name__ == '__main__':
-    torch.manual_seed(42)
-    np.random.seed(42)
-
     # 设置日志保存路径
     log_dir = "./logs/"
     tensorboard_log = "./agent_cartpole_tensorboard/"
