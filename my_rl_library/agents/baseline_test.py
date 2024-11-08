@@ -89,7 +89,7 @@ def run_tests():
 
 if __name__ == '__main__':
     # 设置日志保存路径
-    log_dir = "./logs/"
+    log_dir = "DQNs/logs/"
     tensorboard_log = "./agent_cartpole_tensorboard/"
     if os.path.exists(tensorboard_log):
         # 清空 log_dir 目录中的所有内容

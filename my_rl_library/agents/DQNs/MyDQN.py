@@ -1,9 +1,5 @@
-import gymnasium as gym
 import torch
-import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-from collections import deque
 import random
 
 from my_rl_library.agents.Agent import Agent
@@ -51,7 +47,7 @@ class MyDQN(Agent):
         self.train(total_timesteps=1e5)
 
     def train(self, total_timesteps=1e5, gamma=0.99, epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=0.995,
-                  buffer_capacity=10000, batch_size=64, learning_rate=0.001, replay_period=128):
+                  buffer_capacity=10000, batch_size=64, learning_rate=0.001, replay_period=16, alpha=0.9, beta=0.9):
         policy_net = self.policy_model
         target_net = self.tar_model
         env = self.env
@@ -60,6 +56,8 @@ class MyDQN(Agent):
         replay_buffer = DQNReplayBuffer(buffer_capacity)
         epsilon = epsilon_start
 
+        state, _ = env.reset()
+        total_reward = 0
         for step_i in range(int(total_timesteps)):
             # 使用 epsilon-greedy 策略选择动作
             if random.random() < epsilon:
@@ -77,17 +75,16 @@ class MyDQN(Agent):
             total_reward += reward
 
             if done:
+                # 更新 epsilon
+                epsilon = max(epsilon_end, epsilon_decay * epsilon)
+                print(f"Step {step_i}, Total Reward: {total_reward}")
+
                 state, _ = env.reset()
                 total_reward = 0
 
-                # 更新 epsilon
-                epsilon = max(epsilon_end, epsilon_decay * epsilon)
-
-                print(f"Episode {step_i}, Total Reward: {total_reward}")
-
             # 训练 Q 网络
             if len(replay_buffer) >= batch_size and step_i % replay_period == 0:
-                states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
+                states, actions, rewards, next_states, dones, important_weights = replay_buffer.sample(batch_size)
                 states, actions, rewards, next_states, dones = tuple(map(torch.tensor, (states, actions, rewards, next_states, dones)))
 
                 # 计算目标 Q 值
@@ -102,7 +99,7 @@ class MyDQN(Agent):
                 optimizer.step()
 
                 # 每隔一定步数更新目标网络
-                if step_i % (replay_period * 10) == 0:
+                if step_i % 2000 == 0:
                     target_net.load_state_dict(policy_net.state_dict())
 
 

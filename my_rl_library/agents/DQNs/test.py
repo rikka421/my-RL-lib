@@ -50,8 +50,8 @@ def run_tests():
     for env_name in discrete_envs_list:
         train(env_name, MyDQN)
         plot(env_name, "MyDQN")
-        train(env_name, DQN)
-        plot(env_name, "DQN")
+        # train(env_name, DQN)
+        # plot(env_name, "DQN")
 
     plt.xlabel("Episodes")
     plt.ylabel("Rewards")
