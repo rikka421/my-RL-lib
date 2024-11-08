@@ -1,68 +1,74 @@
-import heapq
+import numpy as np
+import random
+from collections import deque
 
-class PriorityQueue:
-    def __init__(self, capacity):
+
+class PrioritizedReplayBuffer:
+    def __init__(self, capacity, alpha=0.6):
         self.capacity = capacity
-        self.heap = []  # 用于存储优先级队列的堆
-        self.count = 0  # 用于生成插入顺序，打破优先级相同的元素的顺序
+        self.alpha = alpha
+        self.buffer = deque(maxlen=capacity)
+        self.priorities = deque(maxlen=capacity)
 
-    def push(self, priority, item):
-        """
-        向优先级队列添加元素。如果队列已满，删除优先级最低的元素。
-        """
-        # 如果队列还没有满，直接插入
-        if len(self.heap) < self.capacity:
-            heapq.heappush(self.heap, (priority, self.count, item))
-        else:
-            # 如果队列已满，替换优先级最低的元素
-            # 这里的 `heappushpop` 会插入新元素并弹出优先级最低的元素
-            heapq.heappushpop(self.heap, (priority, self.count, item))
+    def push(self, transition, priority):
+        self.buffer.append(transition)
+        self.priorities.append(priority)
 
-        self.count += 1
+    def sample(self, batch_size, beta=0.4):
+        # Calculate priority-based probabilities
+        priorities = np.array(self.priorities) ** self.alpha
+        probabilities = priorities / priorities.sum()
 
-    def pop(self):
-        """
-        弹出并返回优先级最高的元素（优先级数值最小的元素）。
-        """
-        if self.heap:
-            priority, count, item = heapq.heappop(self.heap)
-            return item
-        else:
-            raise IndexError("pop from an empty priority queue")
+        indices = np.random.choice(len(self.buffer), batch_size, p=probabilities)
 
-    def peek(self):
-        """
-        返回优先级最高的元素（不删除）。
-        """
-        if self.heap:
-            priority, count, item = self.heap[0]
-            return item
-        else:
-            raise IndexError("peek from an empty priority queue")
+        # Importance-sampling weights
+        total = len(self.buffer)
+        weights = (total * probabilities[indices]) ** (-beta)
+        weights /= weights.max()  # Normalize
 
-    def size(self):
-        """
-        返回队列当前的大小。
-        """
-        return len(self.heap)
+        batch = [self.buffer[idx] for idx in indices]
 
-# 示例
-pq = PriorityQueue(capacity=3)
+        return batch, indices, weights
 
-# 插入元素
-pq.push(2, 'item_2')
-pq.push(1, 'item_1')
-pq.push(3, 'item_3')
+    def update_priorities(self, indices, priorities):
+        for idx, priority in zip(indices, priorities):
+            self.priorities[idx] = priority
 
-# 队列已满，插入新元素会挤出优先级最低的元素
-pq.push(4, 'item_4')
 
-# 弹出优先级最高的元素（优先级最小的元素）
-print(pq.pop())  # 'item_1' (优先级 1)
+class DQNAgent:
+    def __init__(self, state_dim, action_dim):
+        # Initialize the agent with Q network, target network, etc.
+        self.replay_buffer = PrioritizedReplayBuffer(100000)
+        self.batch_size = 32
+        self.gamma = 0.99
+        self.beta = 0.4
+        self.alpha = 0.6
 
-# 队列大小
-print(pq.size())  # 2
+    def train(self):
+        # Sample from prioritized experience replay buffer
+        batch, indices, weights = self.replay_buffer.sample(self.batch_size, self.beta)
 
-# 获取当前队列中的元素
-while pq.size() > 0:
-    print(pq.pop())
+        # Get states, actions, rewards, next states from batch
+        states, actions, rewards, next_states = zip(*batch)
+
+        # Compute the TD errors (target)
+        q_values_next = self.target_network(next_states)
+        target_q = rewards + self.gamma * np.max(q_values_next, axis=1)
+
+        # Compute the predicted Q-values
+        q_values = self.q_network(states)
+        q_pred = q_values[np.arange(self.batch_size), actions]
+
+        # Compute the loss with importance sampling weights
+        errors = target_q - q_pred
+        loss = np.mean(weights * np.square(errors))  # Loss with IS correction
+
+        # Backpropagate to update the Q network
+        # (Use optimizer and compute gradients)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        # Update priorities in the replay buffer
+        new_priorities = np.abs(errors) + 1e-5
+        self.replay_buffer.update_priorities(indices, new_priorities)
