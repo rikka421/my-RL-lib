@@ -10,9 +10,7 @@ class DQNReplayBuffer(PrioritySamplePool):
     def sample(self, batch_size, device):
         with torch.no_grad():
             # 采样得到的是一个[(s, a, r, s, d), (s, a, r, s, d), ...]
-            samples, probabilities = super().sample(batch_size, device)
-
-            states, actions, rewards, next_states, dones = zip(*samples)
+            states, actions, rewards, next_states, dones, probabilities = super().sample(batch_size, device)
 
             states = torch.tensor(np.array(states), dtype=torch.float32).to(device=device)
             actions = torch.tensor(np.array(actions), dtype=torch.int64).view(-1, 1).to(device=device)
@@ -26,8 +24,8 @@ class DQNReplayBuffer(PrioritySamplePool):
         with torch.no_grad():
             for i in range(len(priorities)):
                 index = self.indices[i]
-                self.samples[index][1] = priorities[i].item()
-                self.max_priority = max(self.max_priority, self.samples[index][1])
+                self.priorities[index] = priorities[i].item()
+                self.max_priority = max(self.max_priority, self.priorities[index])
 
 
 class MyDQN(Agent):
@@ -41,15 +39,15 @@ class MyDQN(Agent):
 
         if hidden_dims is None:
             hidden_dims = [64, 64]
-        state_dim = env.observation_space.shape[0]
-        action_dim = env.action_space.n
+        self.state_dim = env.observation_space.shape[0]
+        self.action_dim = env.action_space.n
 
         self.env = env
         if dueling_q:
             pass
         else:
-            self.target_network = MyFCNN(state_dim, action_dim, hidden_dims).to(device)
-            self.action_network = MyFCNN(state_dim, action_dim, hidden_dims).to(device)
+            self.target_network = MyFCNN(self.state_dim, self.action_dim, hidden_dims).to(device)
+            self.action_network = MyFCNN(self.state_dim, self.action_dim, hidden_dims).to(device)
         self.target_network.load_state_dict(self.action_network.state_dict())
         self.target_network.eval()
 
@@ -97,7 +95,8 @@ class MyDQN(Agent):
         env = self.env
 
         optimizer = optim.Adam(policy_net.parameters(), lr=learning_rate)
-        replay_buffer = DQNReplayBuffer(buffer_capacity, alpha)
+        # 注意这里的action_dim 指的是action的可选数量, 和描述一个action所需的维度不同, 所以这里action_dim参数填的是1
+        replay_buffer = DQNReplayBuffer(buffer_capacity, alpha, self.state_dim, 1)
         epsilon = epsilon_start
 
         state, _ = env.reset()
@@ -113,7 +112,7 @@ class MyDQN(Agent):
             # 执行动作
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
-            replay_buffer.put([state, action, reward, next_state, done])
+            replay_buffer.put(state, action, reward, next_state, done)
 
             state = next_state
             total_reward += reward
