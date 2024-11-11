@@ -21,10 +21,10 @@ def train(env_name, Agent):
     env = Monitor(env, log_dir + "monitor.csv")
 
     # 初始化模型，启用 TensorBoard 日志记录
-    model = Agent("MlpPolicy", env)# , verbose=1, tensorboard_log=tensorboard_log)
+    model = Agent("MlpPolicy", env, double_q=False, dueling_q=False, priority_pool=True)# , verbose=1, tensorboard_log=tensorboard_log)
 
     # 开始训练
-    model.learn(total_timesteps=1e5)
+    model.learn(total_timesteps=1e4)
     model.save(log_dir + "model_weights")
     env.close()
 
