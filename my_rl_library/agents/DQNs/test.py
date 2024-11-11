@@ -1,3 +1,5 @@
+import time
+
 import gymnasium as gym
 import torch
 import numpy as np
@@ -23,8 +25,15 @@ def train(env_name, Agent):
     # 初始化模型，启用 TensorBoard 日志记录
     model = Agent("MlpPolicy", env, double_q=False, dueling_q=False, priority_pool=True)# , verbose=1, tensorboard_log=tensorboard_log)
 
+
+    time1 = time.time()
     # 开始训练
-    model.learn(total_timesteps=1e4)
+    model.train(total_timesteps=1e5)
+
+    time2 = time.time()
+
+    print(time2-time1)
+
     model.save(log_dir + "model_weights")
     env.close()
 
