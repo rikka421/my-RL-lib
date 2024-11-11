@@ -65,13 +65,13 @@ class MyDQN(Agent):
         # 采样得到一个tensor. probabilities 是一个tensor
         states, actions, rewards, next_states, dones, probabilities = buffer.sample(batch_size, self.device)
         q_values = self.action_network(states).gather(1, actions)
+        q_values_next = self.target_network(next_states)
         if not self.double_q:
-            q_values_next = self.target_network(next_states)
             target_q = rewards + gamma * torch.max(q_values_next, dim=1).values.view(-1, 1) * (1 - dones)
         else:
             # 如果是Double DQN
-            q_values_next = self.action_network(next_states)  # 选择动作, 通过action
-            target_q = rewards + gamma * self.target_network(np.argmax(q_values_next, axis=1)).view(-1, 1) * (1 - dones)  # 估值动作, 通过target
+            best_actions = torch.argmax(self.action_network(next_states), dim=1).view(-1, 1) # 选择动作, 通过action
+            target_q = rewards + gamma * q_values_next.gather(1, best_actions).view(-1, 1) * (1 - dones)  # 估值动作, 通过target
 
         errors = q_values - target_q
         # print(torch.sum(self.action_network(states)), torch.sum(self.action_network(states) - self.target_network(states)) )
@@ -90,8 +90,8 @@ class MyDQN(Agent):
         loss.backward()
         optimizer.step()
 
-    def train(self, total_timesteps=1e5, gamma=0.99, epsilon_start=0.5, epsilon_end=0.01, epsilon_decay=0.995,
-                  buffer_capacity=10000, batch_size=64, learning_rate=0.001, replay_period=1, alpha=0.9, beta=0.9):
+    def train(self, total_timesteps=1e5, gamma=0.99, epsilon_start=0.5, epsilon_end=0.05, epsilon_decay=0.995,
+                  buffer_capacity=10000, batch_size=64, learning_rate=0.0001, replay_period=1, alpha=0.9, beta=0.9):
         policy_net = self.action_network
         target_net = self.target_network
         env = self.env
@@ -130,7 +130,7 @@ class MyDQN(Agent):
             if len(replay_buffer) >= batch_size and step_i % replay_period == 0:
                 # 每隔一定步数采样进行训练 (步数量级为1)
                 self.step(replay_buffer, optimizer, batch_size, gamma, beta)
-            if step_i % 2000 == 0:
+            if step_i % 1000 == 0:
                 # 每隔一定步数更新目标网络 (步数量级为1000)
                 target_net.load_state_dict(policy_net.state_dict())
 

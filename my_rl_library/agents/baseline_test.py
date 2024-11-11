@@ -61,10 +61,11 @@ def plot(env_name, agent_name):
 def run_tests():
     discrete_envs_list = ["LunarLander-v2"]
     continuous_envs_list = ["Pendulum-v1"]
-    continuous_agents_list = [DDPG,
-                              TD3,
-                              SAC,
-                              PPO]
+    continuous_agents_list = [#DDPG,
+                              #TD3,
+                              #SAC,
+                              #PPO
+        ]
 
     for env_name in discrete_envs_list:
         Agent = DQN

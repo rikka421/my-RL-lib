@@ -16,19 +16,24 @@ import matplotlib.pyplot as plt
 from my_rl_library.agents.DQNs.MyDQN import MyDQN
 
 
-def train(env_name, Agent):
+def train(env_name, Agent, myModel, timestep=1e5):
     # 创建 Gym 环境并添加 Monitor 以记录数据
     env = gym.make(env_name)
 
     env = Monitor(env, log_dir + "monitor.csv")
 
-    # 初始化模型，启用 TensorBoard 日志记录
-    model = Agent("MlpPolicy", env, double_q=False, dueling_q=False, priority_pool=True)# , verbose=1, tensorboard_log=tensorboard_log)
-
-
     time1 = time.time()
-    # 开始训练
-    model.train(total_timesteps=1e5)
+
+    if myModel:
+        # 初始化模型，启用 TensorBoard 日志记录
+        model = Agent("MlpPolicy", env, double_q=True, dueling_q=False, priority_pool=True)
+        # 开始训练
+        model.train(total_timesteps=timestep)
+    else:
+        model = Agent("MlpPolicy", env, verbose=1, tensorboard_log=tensorboard_log)
+        # 开始训练
+        model.learn(total_timesteps=timestep)
+
 
     time2 = time.time()
 
@@ -36,6 +41,12 @@ def train(env_name, Agent):
 
     model.save(log_dir + "model_weights")
     env.close()
+
+    if myModel:
+        plot(env_name, "MyDQN-double-Q")
+    else:
+        plot(env_name, "base-DQN")
+
 
 def plot(env_name, agent_name):
     # 读取 Monitor 日志文件
@@ -57,10 +68,8 @@ def run_tests():
     discrete_envs_list = ["CartPole-v1"]
 
     for env_name in discrete_envs_list:
-        train(env_name, MyDQN)
-        plot(env_name, "MyDQN")
-        # train(env_name, DQN)
-        # plot(env_name, "DQN")
+        train(env_name, DQN, myModel=False, timestep=1e4)
+        train(env_name, MyDQN, myModel=True, timestep=1e4)
 
     plt.xlabel("Episodes")
     plt.ylabel("Rewards")
@@ -70,7 +79,18 @@ def run_tests():
 
 
 
+
+
+import cProfile
+import pstats
 if __name__ == '__main__':
+
+    # 显示结果
+    with open('result.txt', 'w') as f:
+        p = pstats.Stats('output.prof', stream=f)
+        p.sort_stats('cumtime').print_stats()
+
+else:
     torch.manual_seed(42)
     np.random.seed(42)
 
@@ -83,4 +103,8 @@ if __name__ == '__main__':
     # 创建空的 log_dir 目录
     os.makedirs(log_dir, exist_ok=True)
 
-    run_tests()
+
+
+    # 使用 cProfile 分析 my_function 的性能
+    cProfile.run('run_tests()', 'output.prof')
+
