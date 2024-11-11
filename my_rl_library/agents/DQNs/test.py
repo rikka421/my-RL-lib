@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from my_rl_library.agents.DQNs.MyDQN import MyDQN
 
 
-def train(env_name, Agent, myModel, timestep=1e5):
+def train(env_name, Agent, myModel, plot_name="DQN", timestep=1e5, double_q=True, dueling_q=False, priority_pool=True):
     # 创建 Gym 环境并添加 Monitor 以记录数据
     env = gym.make(env_name)
 
@@ -26,7 +26,7 @@ def train(env_name, Agent, myModel, timestep=1e5):
 
     if myModel:
         # 初始化模型，启用 TensorBoard 日志记录
-        model = Agent("MlpPolicy", env, double_q=True, dueling_q=False, priority_pool=True)
+        model = Agent("MlpPolicy", env, double_q=double_q, dueling_q=dueling_q, priority_pool=priority_pool)
         # 开始训练
         model.train(total_timesteps=timestep)
     else:
@@ -43,7 +43,7 @@ def train(env_name, Agent, myModel, timestep=1e5):
     env.close()
 
     if myModel:
-        plot(env_name, "MyDQN-double-Q")
+        plot(env_name, plot_name)
     else:
         plot(env_name, "base-DQN")
 
@@ -66,10 +66,18 @@ def plot(env_name, agent_name):
 
 def run_tests():
     discrete_envs_list = ["CartPole-v1"]
+    timestep = 2e5
 
     for env_name in discrete_envs_list:
-        # train(env_name, DQN, myModel=False, timestep=5e4)
-        train(env_name, MyDQN, myModel=True, timestep=5e4)
+        train(env_name, MyDQN, plot_name="DQN", myModel=True, timestep=timestep, double_q=False, dueling_q=False, priority_pool=False)
+        train(env_name, MyDQN, plot_name="priority-pool", myModel=True, timestep=timestep, double_q=False, dueling_q=False, priority_pool=True)
+        train(env_name, MyDQN, plot_name="double_q", myModel=True, timestep=timestep, double_q=True, dueling_q=False, priority_pool=False)
+        train(env_name, MyDQN, plot_name="priority-pool+double_q", myModel=True, timestep=timestep, double_q=True, dueling_q=False, priority_pool=True)
+        train(env_name, MyDQN, plot_name="dueling+DQN", myModel=True, timestep=timestep, double_q=False, dueling_q=True, priority_pool=False)
+        train(env_name, MyDQN, plot_name="dueling+priority-pool", myModel=True, timestep=timestep, double_q=True, dueling_q=False, priority_pool=True)
+        train(env_name, MyDQN, plot_name="dueling+double_q", myModel=True, timestep=timestep, double_q=True, dueling_q=True, priority_pool=False)
+        train(env_name, MyDQN, plot_name="dueling+priority-pool+double_q", myModel=True, timestep=timestep, double_q=True, dueling_q=True, priority_pool=True)
+
 
     plt.xlabel("Episodes")
     plt.ylabel("Rewards")
@@ -94,36 +102,34 @@ if __name__ == '__main__':
     # 创建空的 log_dir 目录
     os.makedirs(log_dir, exist_ok=True)
 
+    run_tests()
+
+else:
     # 使用 cProfile 分析 my_function 的性能
     cProfile.run('run_tests()', 'output.prof')
 
     # 显示结果
-    with open('result3.txt', 'w') as f:
+    with open('result.txt', 'w') as f:
         p = pstats.Stats('output.prof', stream=f)
         p.sort_stats('time').print_stats()
 
-else:
-    pass
-
 
 """
-    49937   25.877    0.001   57.674    0.001 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:62(sample)
-    49937   18.891    0.000   18.891    0.000 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:72(<listcomp>)
-    49937   14.845    0.000   14.845    0.000 {method 'run_backward' of 'torch._C._EngineBase' objects}
-   400363   12.468    0.000   12.468    0.000 {built-in method numpy.array}
-    49937    7.066    0.000    9.462    0.000 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:25(update_samples)
-   582633    6.785    0.000    6.785    0.000 {built-in method torch._C._nn.linear}
-    49937    4.528    0.000   11.898    0.000 /home/rikka/anaconda3/envs/RL/lib/python3.10/site-packages/torch/optim/adam.py:320(_single_tensor_adam)
-    49937    2.886    0.000  133.159    0.003 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:64(step)
+    49937   28.157    0.001   30.112    0.001 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:96(sample)
+    62412   23.009    0.000   23.009    0.000 {method 'run_backward' of 'torch._C._EngineBase' objects}
+    49937   11.037    0.000   16.997    0.000 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:23(update_samples)
+   796569   10.956    0.000   10.956    0.000 {built-in method torch._C._nn.linear}
+    49937    5.801    0.000   16.291    0.000 /home/rikka/anaconda3/envs/RL/lib/python3.10/site-packages/torch/optim/adam.py:320(_single_tensor_adam)
+   420014    4.251    0.000    4.251    0.000 {built-in method torch.tensor}
+    49937    3.385    0.000  122.618    0.002 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:62(step)
 
 
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-    49937   29.018    0.001   33.042    0.001 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:103(sample)
-    49937   20.818    0.000   20.818    0.000 {method 'run_backward' of 'torch._C._EngineBase' objects}
-    49937   13.952    0.000   31.196    0.001 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:23(update_samples)
-  2859686   10.363    0.000   10.674    0.000 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:20(get)
-   587550    9.699    0.000    9.699    0.000 {built-in method torch._C._nn.linear}
-    49937    6.529    0.000   17.741    0.000 /home/rikka/anaconda3/envs/RL/lib/python3.10/site-packages/torch/optim/adam.py:320(_single_tensor_adam)
-    49937    3.723    0.000  147.444    0.003 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:62(step)
 
+    49937   32.243    0.001   34.467    0.001 /home/rikka/files/codes/my-RL-lib/my_rl_library/utils/SamplePool.py:96(sample)
+    62412   28.033    0.000   28.033    0.000 {method 'run_backward' of 'torch._C._EngineBase' objects}
+    49937   14.457    0.000   20.974    0.000 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:23(update_samples)
+   797316   13.953    0.000   13.953    0.000 {built-in method torch._C._nn.linear}
+    49937    7.487    0.000   21.473    0.000 /home/rikka/anaconda3/envs/RL/lib/python3.10/site-packages/torch/optim/adam.py:320(_single_tensor_adam)
+   420263    6.313    0.000    6.313    0.000 {built-in method torch.tensor}
+    49937    4.538    0.000  151.403    0.003 /home/rikka/files/codes/my-RL-lib/my_rl_library/agents/DQNs/MyDQN.py:63(step)
 """

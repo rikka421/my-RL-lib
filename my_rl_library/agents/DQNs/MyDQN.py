@@ -5,6 +5,7 @@ import random
 from my_rl_library.agents.Agent import Agent
 from my_rl_library.utils import *
 
+from tqdm import tqdm
 
 class DQNReplayBuffer(PrioritySamplePool):
     def sample(self, batch_size, device):
@@ -20,12 +21,13 @@ class DQNReplayBuffer(PrioritySamplePool):
             probabilities = torch.tensor(np.array(probabilities), dtype=torch.float32).view(-1, 1).to(device=device)
             return states, actions, rewards, next_states, dones, probabilities
 
-    def update_samples(self, priorities):
+    def update_samples(self, priorities, batch_size):
         with torch.no_grad():
-            for i in range(len(priorities)):
+            for i in range(batch_size):
                 index = self.indices[i]
-                self.priorities[index] = priorities[i].item()
-                self.max_priority = max(self.max_priority, self.priorities[index])
+                value = priorities[i].item()
+                self.priorities[index] = value
+                self.max_priority = max(self.max_priority, value)
 
 
 class MyDQN(Agent):
@@ -44,7 +46,8 @@ class MyDQN(Agent):
 
         self.env = env
         if dueling_q:
-            pass
+            self.target_network = MyDuelingNN(self.state_dim, self.action_dim, hidden_dims).to(device)
+            self.action_network = MyDuelingNN(self.state_dim, self.action_dim, hidden_dims).to(device)
         else:
             self.target_network = MyFCNN(self.state_dim, self.action_dim, hidden_dims).to(device)
             self.action_network = MyFCNN(self.state_dim, self.action_dim, hidden_dims).to(device)
@@ -79,16 +82,17 @@ class MyDQN(Agent):
         else:
             # 若引入优先级采样和重要性采样
             weights = torch.pow(len(buffer) * probabilities, -beta)
+            weights /= torch.max(weights)  # 做归一化防止系数大于1
             loss = torch.sum(weights * (errors * errors))
-            new_priorities = torch.abs(errors)
-            buffer.update_samples(new_priorities) # 将新计算出的priorities更新到样本池中
+            new_priorities = torch.abs(errors)    # 计算新的priorities
+            buffer.update_samples(new_priorities, batch_size) # 将新计算出的priorities更新到样本池中
 
         # step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    def train(self, total_timesteps=1e5, gamma=0.99, epsilon_start=0.5, epsilon_end=0.05, epsilon_decay=0.995,
+    def train(self, total_timesteps=1e5, gamma=0.99, epsilon_start=0.5, epsilon_end=0.01, epsilon_decay=0.995,
                   buffer_capacity=10000, batch_size=64, learning_rate=0.0001, replay_period=1, alpha=0.9, beta=0.9):
         policy_net = self.action_network
         target_net = self.target_network
@@ -101,38 +105,50 @@ class MyDQN(Agent):
 
         state, _ = env.reset()
         total_reward = 0
-        for step_i in range(int(total_timesteps)):
-            # 使用 epsilon-greedy 策略选择动作
-            if random.random() < epsilon:
-                action = env.action_space.sample()
-            else:
-                with torch.no_grad():
-                    action = policy_net(torch.tensor(state, dtype=torch.float)).argmax().item()
 
-            # 执行动作
-            next_state, reward, terminated, truncated, _ = env.step(action)
-            done = terminated or truncated
-            replay_buffer.put(state, action, reward, next_state, done)
+        return_list = []
+        for i in range(10):
+            with tqdm(total=100, desc='Iteration %d' % i) as pbar:
+                for step_i in range(int(total_timesteps) // 10):
+                    # 使用 epsilon-greedy 策略选择动作
+                    if random.random() < epsilon:
+                        action = env.action_space.sample()
+                    else:
+                        with torch.no_grad():
+                            action = policy_net(torch.tensor(state, dtype=torch.float)).argmax().item()
 
-            state = next_state
-            total_reward += reward
+                    # 执行动作
+                    next_state, reward, terminated, truncated, _ = env.step(action)
+                    done = terminated or truncated
+                    replay_buffer.put(state, action, reward, next_state, done)
 
-            if done:
-                # 更新 epsilon
-                epsilon = max(epsilon_end, epsilon_decay * epsilon)
-                print(f"Step {step_i}, Total Reward: {total_reward}, epsilon: {epsilon :.2f}")
+                    state = next_state
+                    total_reward += reward
 
-                state, _ = env.reset()
-                total_reward = 0
+                    if done:
+                        # 更新 epsilon
+                        return_list.append(total_reward)
+                        epsilon = max(epsilon_end, epsilon_decay * epsilon)
+                        # print(f"Step {step_i}, Total Reward: {total_reward}, epsilon: {epsilon :.2f}")
 
-            # 训练 Q 网络
-            if len(replay_buffer) >= batch_size and step_i % replay_period == 0:
-                # 每隔一定步数采样进行训练 (步数量级为1)
-                self.step(replay_buffer, optimizer, batch_size, gamma, beta)
-            if step_i % 1000 == 0:
-                # 每隔一定步数更新目标网络 (步数量级为1000)
-                target_net.load_state_dict(policy_net.state_dict())
+                        state, _ = env.reset()
+                        total_reward = 0
 
+                    # 训练 Q 网络
+                    if len(replay_buffer) >= batch_size and step_i % replay_period == 0:
+                        # 每隔一定步数采样进行训练 (步数量级为1)
+                        self.step(replay_buffer, optimizer, batch_size, gamma, beta)
+                    if step_i % 1000 == 0:
+                        # 每隔一定步数更新目标网络 (步数量级为1000)
+                        target_net.load_state_dict(policy_net.state_dict())
+                    if step_i % (int(total_timesteps) // 1000) == 0:
+                        pbar.set_postfix({
+                            'step_i':
+                                '%d' % (i * (int(total_timesteps) // 10) + step_i),
+                            'return':
+                                '%.3f' % np.mean(return_list[-10:])
+                        })
+                        pbar.update(1)
 
         return policy_net
 

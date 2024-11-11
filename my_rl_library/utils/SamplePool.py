@@ -80,7 +80,7 @@ class PrioritySamplePool():
         self.dones = CircularBuffer((capacity, ), dtype=np.int64)
 
         self.alpha = alpha
-        self.max_priority = 1.0
+        self.max_priority = 1e-4
     def put(self, state, action, reward, next_state, done):
         """
         向样本池中添加一个新样本。最旧的样本将被挤出
